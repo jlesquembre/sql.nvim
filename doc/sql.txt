@@ -1,0 +1,423 @@
+================================================================================
+sql.new({uri})                                                     *sql.new()*
+        Creates a new sql.nvim object, without creating a connection to uri
+        |sql.new| is identical to |sql.open| but it without opening sqlite db
+        connection.
+
+        Parameters: ~
+            {uri} (string)  if uri is nil, then create in memory database.
+
+        Return: ~
+            table: sql.nvim object
+        Usage: ~
+            `sql.new()`
+            `sql.new("./path/to/sql.sqlite")`
+            `sql:new("$ENV_VARABLE")`
+        See: ~
+            ||sql.open|()|
+
+sql:__last_errcode()                                    *sql:__last_errcode()*
+        Get last error code
+
+        Return: ~
+            number: sqlite error number
+
+sql:__last_errmsg()                                      *sql:__last_errmsg()*
+        Get last error msg
+
+        Return: ~
+            string: sqlite error msg
+
+sql:create({name}, {schema})                                    *sql:create()*
+        Create a new sqlite db table with {name} based on {schema}. if
+        {schema.ensure} then create only when it doesn't exists. similar to
+        'create if not exists'
+
+        Parameters: ~
+            {name} (string)  table name
+            {schema} (table)  the table keys/column and their types
+
+        Return: ~
+            boolean
+        Usage: ~
+            `db:create("todos", {id = {"int", "primary", "key"}, title =
+            "text"})`
+
+sql:delete({specs}, {tbl})                                      *sql:delete()*
+        Delete a {tbl} row/rows based on the {specs} given. if no spec was
+        given, then all the {tbl} content will be deleted.
+
+        Parameters: ~
+            {specs} (table)  a {spec} or a list of {specs} with where and values key.
+            {tbl} (string)  the name of the db table.
+
+        Return: ~
+            boolean: true if operation is successfully, false otherwise.
+        Usage: ~
+            db:delete("todos")
+            db:delete("todos", { where = { id = 1 })
+            db:delete("todos", { where = { id = {1,2,3} })
+
+sql:drop({name})                                                  *sql:drop()*
+        Create a new sqlite db table with {name} based on {schema}. if
+        {schema.ensure} then create only when it doesn't exists. similar to
+        'create if not exists'
+
+        Parameters: ~
+            {name} (string)  table name
+
+        Return: ~
+            boolean
+        Usage: ~
+            `db:drop("todos")`
+
+sql:exists({name})                                              *sql:exists()*
+        Check if a table with {name} exists in sqlite db
+
+        Parameters: ~
+            {name} (string)  the table name.
+
+        Return: ~
+            boolean
+
+sql:insert()                                                    *sql:insert()*
+        Insert to lua table into sqlite database table.
+
+        Return: ~
+            boolean: true incase the table was inserted successfully.
+        Usage: ~
+            db:insert("todos", { title = "new todo" })
+
+sql:isclose()                                                  *sql:isclose()*
+        predict returning true if db connection is deactivated.
+
+        Return: ~
+            boolean: true if db is close, otherwise false.
+
+sql:isopen()                                                    *sql:isopen()*
+        predict returning true if db connection is active.
+
+        Return: ~
+            boolean: true if db is opened, otherwise false.
+
+sql:schema({onlykeys}, {tbl})                                   *sql:schema()*
+        get sql table {name} schema, if table doesn't exist then return empty
+        table.
+
+        Parameters: ~
+            {onlykeys} (boolean)  whether to return a table of keys and their types. default false.
+            {tbl} (string)  the table name
+
+        Return: ~
+            table: list of keys or keys and their type.
+
+sql:select()                                                    *sql:select()*
+        Query from a table with where and join options
+
+        Usage: ~
+            db:get("todos") -- everything
+            db:get("todos", { where = { id = 1 })
+
+sql:status()                                                    *sql:status()*
+        Returns current connection status Get last error code
+
+
+sql:table({tbl_name})                                            *sql:table()*
+        Create new sqltable object.
+
+        Parameters: ~
+            {tbl_name} (string)  the name of the table. can be new or existing one.
+
+        Return: ~
+            table
+
+sql:update({specs}, {tbl})                                      *sql:update()*
+        Update table row with where closure and list of values
+
+        Parameters: ~
+            {specs} (table)  a {spec} or a list of {specs} with where and values key.
+            {tbl} (string)  the name of the db table.
+
+        Return: ~
+            boolean: true incase the table was updated successfully.
+        Usage: ~
+            `db:update("todos", { where = { id = "1" }, values = { action =
+            "DONE" }})`
+
+
+================================================================================
+t:count()                                                          *t:count()*
+        The count of the rows in {self.tbl}.
+
+        Return: ~
+            number: number of rows in {self.tbl}
+
+t:drop()                                                            *t:drop()*
+        Same functionalities as |sql:drop()|, if the table is already drooped
+        then it returns false
+
+        Return: ~
+            boolean
+
+t:each({query}, {func})                                             *t:each()*
+        Iterate over {self.tbl} rows and execute {func}.
+
+        Parameters: ~
+            {query} (table)  query.where, query.keys, query.join
+            {func} (function)  a function that expects a row
+
+        Return: ~
+            boolean: true if rows ~= empty table
+
+t:empty()                                                          *t:empty()*
+        Predicate that returns true if the table is empty
+
+        Return: ~
+            boolean
+
+t:exists()                                                        *t:exists()*
+        Predicate that returns true if the table exists
+
+        Return: ~
+            boolean
+
+t:get({query})                                                       *t:get()*
+        Query the table and return results. If the {query} has been ran before,
+        then query results from cache will be returned.
+
+        Parameters: ~
+            {query} (table)  query.where, query.keys, query.join
+
+        Return: ~
+            table: empty table if no result
+        See: ~
+            |sql:select()()|
+
+t:insert({rows})                                                  *t:insert()*
+        Same functionalities as |sql:insert()|
+
+        Parameters: ~
+            {rows} (table)  a row or a group of rows
+
+        Return: ~
+            boolean
+        See: ~
+            |t:__run()()|
+            |sql:insert()()|
+
+t:map({query}, {func})                                               *t:map()*
+        create a new table from iterating over {self.tbl} rows with {func}.
+
+        Parameters: ~
+            {query} (table)  query.where, query.keys, query.join
+            {func} (function)  a function that expects a row
+
+        Return: ~
+            boolean: true if rows ~= empty table
+
+t:remove({specs})                                                 *t:remove()*
+        Same functionalities as |sql:delete()|
+
+        Parameters: ~
+            {specs} (table)  specs.where
+
+        Return: ~
+            boolean
+        See: ~
+            |t:__run()()|
+            |sql:delete()()|
+
+t:replace({rows})                                                *t:replace()*
+        Same functionalities as |t:add()|, but replaces {self.tbl} content with
+        {rows}
+
+        Parameters: ~
+            {rows} (table)  a row or a group of rows
+
+        Return: ~
+            boolean
+        See: ~
+            |t:__run()()|
+            |sql:delete()()|
+            |sql:insert()()|
+
+t:schema({schema})                                                *t:schema()*
+        Create or change {self.tbl} schema. If no {schema} is given, then it
+        return current the used schema.
+
+        Parameters: ~
+            {schema} (table)  table schema definition
+
+        Return: ~
+            table: list of keys or keys and their type.
+
+t:sort({query}, {comp})                                             *t:sort()*
+        Sorts a table inplace using a transform. Values are ranked in a custom
+        order of the results of running `transform (v)` on all values.
+        `transform` may also be a string name property  sort by. `comp` is a
+        comparison function. Adopted from Moses.lua
+
+        Parameters: ~
+            {query} (table)  query.where, query.keys, query.join
+            {comp} (function)  a comparison function, defaults to the `<` operator
+
+        Return: ~
+            table: list of sorted values
+
+t:update({specs})                                                 *t:update()*
+        Same functionalities as |sql:update()|
+
+        Parameters: ~
+            {specs} (table)  a table or a list of tables with where and values keys.
+
+        Return: ~
+            boolean
+        See: ~
+            |t:__run()()|
+            |sql:update()()|
+
+
+================================================================================
+                                                                      *stmt.lua*
+
+stmt.lua is a collection of methods to deal with sqlite statements.
+
+stmt:bind()                                                      *stmt:bind()*
+        Bind {args[2]} at {args[1]} or kv pairs {args[1]}. If {args[1]} is a
+        number and {args[2]} is a value then it binds by index. Else first
+        argument is a table, then it binds the table to indicies, and it works
+        with named and unnamed.
+
+        Varargs: ~
+            if {args[1]} number and {args[2]} or {args[1]} table
+        See: ~
+            |stmt:nparam()|
+            |stmt:param()|
+            |stmt:bind()|
+
+stmt:bind_blob({size}, {pointer}, {idx})                    *stmt:bind_blob()*
+        Binds a blob at {idx} with {size}
+
+        Parameters: ~
+            {size} (number)  pointer size
+            {pointer} (sqlite3_blob)  blob to bind
+            {idx} (number)  index starting at 1
+
+        Return: ~
+            sqlite_flag
+
+stmt:bind_clear()                                          *stmt:bind_clear()*
+        Clear the current bindings.
+
+        Return: ~
+            sqlite_flag
+
+stmt:bind_next({value})                                     *stmt:bind_next()*
+        Bind the value at the next index until all values are bound
+
+        Parameters: ~
+            {value} (any)  value to bind
+
+        Return: ~
+            sqlite_flag
+
+stmt:bind_zeroblob({size}, {idx})                       *stmt:bind_zeroblob()*
+        Binds zeroblob at {idx} with {size}
+
+        Parameters: ~
+            {size} (number)  zeroblob size
+            {idx} (number)  index starting at 1
+
+        Return: ~
+            sqlite_flag
+
+stmt:each({callback})                                            *stmt:each()*
+        Loops through results with {callback} until there is no row left.
+
+        Parameters: ~
+            {callback} (function)  a function to be called on each number of row.
+
+        Usage: ~
+            stmt:each(function(s)  print(s:val(1))  end)
+        See: ~
+            |stmt:step()|
+
+stmt:expand()                                                  *stmt:expand()*
+        Expand the resulting statement after binding, used for debugging
+        purpose.
+
+        Return: ~
+            string: the resulting statement that can be finalized.
+
+stmt:iter()                                                      *stmt:iter()*
+        stmt:iter
+
+        See: ~
+            |stmt:next()|
+
+stmt:kt()                                                          *stmt:kt()*
+        Key/type pair in current result.
+
+        Return: ~
+            table: key/type pair of a row.
+        See: ~
+            |stmt:key()|
+            |stmt:val()|
+            |stmt:nkeys()|
+
+stmt:kvrows({callback})                                        *stmt:kvrows()*
+        Loops through the results and if {callback} pass to it row, else return
+        nested kv pairs.
+
+        Parameters: ~
+            {callback} (function)  a function to be called with each row.
+
+        Return: ~
+            table: if no callback then nested key-value pairs
+        See: ~
+            |stmt:kv()|
+            |stmt:each()|
+
+stmt:next()                                                      *stmt:next()*
+        stmt:next: If code == flags.row it returns If code == flags.done it
+        reset the parsed statement
+
+
+stmt:nparam()                                                  *stmt:nparam()*
+        The number of parameter to bind.
+
+        Return: ~
+            number: number of params in {stmt.pstmt}
+
+stmt:param({idx})                                               *stmt:param()*
+        The parameter key/name at {idx}
+
+        Parameters: ~
+            {idx} (number)  index starting at 1
+
+        Return: ~
+            string: param key ":key" at {idx}
+
+stmt:params()                                                  *stmt:params()*
+        Parameters keys/names
+
+        Return: ~
+            table: paramters key/names in {stmt.pstmt}
+        See: ~
+            |stmt:nparam()|
+            |stmt:param()|
+
+stmt:vrows({callback})                                          *stmt:vrows()*
+        Like stmt:kvrows but passed list of values instead of kv pairs.
+
+        Parameters: ~
+            {callback} (function)  a function to be called with each row.
+
+        Return: ~
+            table: if no callback then nested lists of values in each row.
+        See: ~
+            |stmt:vals()|
+            |stmt:each()|
+
+
+ vim:tw=78:ts=8:ft=help:norl:
